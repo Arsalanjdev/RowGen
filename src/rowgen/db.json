@@ -1,0 +1,10 @@
+{
+  "table_name": "users",
+  "columns": {
+    "id": "int",
+    "name": "string",
+    "email": "string",
+    "age": "int"
+  },
+  "num_rows": 10
+}
