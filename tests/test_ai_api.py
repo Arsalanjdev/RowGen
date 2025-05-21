@@ -6,6 +6,7 @@ from huggingface_hub.errors import BadRequestError
 
 from rowgen.utils import API_KEY
 from huggingface_hub import InferenceClient, HfApi
+from rowgen.hf_api import HFapi
 
 
 DEEP_SEEK_MODEL = "deepseek-ai/DeepSeek-V3"
@@ -21,6 +22,12 @@ def inference_client():
 @pytest.fixture
 def hf_api_client():
     return HfApi()
+
+
+@pytest.fixture
+def hf_api():
+    client = HFapi()
+    return client
 
 
 def test_hf_hub_ping(hf_api_client):
@@ -42,6 +49,20 @@ def test_hf_inference_connection(inference_client):
         message: str = completion.choices[0].message["content"]
         assert len(message) > 0
         assert "banana" in message.casefold()
+
+    except BadRequestError as e:
+        print(e)
+
+    except Exception as d:
+        pytest.fail(f"Failed inference call: {d}")
+
+
+def test_hf_api_send_message_to_api(hf_api):
+    prompt_message = "Hi! This is a test. say banana if you can hear me."
+    try:
+        response_message = hf_api.send_message_to_api(prompt_message)
+        assert len(response_message) > 0
+        assert "banana" in response_message.casefold()
 
     except BadRequestError as e:
         print(e)

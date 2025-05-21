@@ -6,8 +6,6 @@ import sqlalchemy
 from dotenv import load_dotenv
 from utils import API_KEY
 
-print()
-
 
 class JsonDB:
     def __init__(self):
@@ -22,19 +20,6 @@ class JsonDB:
 
 
 print(JsonDB()["columns"])
-
-client = InferenceClient(provider="novita", api_key=API_KEY)
-completion = client.chat.completions.create(
-    model="deepseek-ai/DeepSeek-V3",
-    messages=[
-        {
-            "role": "user",
-            "content": f"generate 10 rows for the following schema: {JsonDB().get_column_names()}. Use real looking data (no john doe or @example.com. also make emails beliavble such as using numbers underscores. sometimes even use unrelated to emails that are unrelate to names.). do not say anything. just generate data in a json format.",
-        }
-    ],
-)
-
-print(completion.choices[0])
 
 
 class JsonParse:
@@ -64,6 +49,3 @@ class JsonParse:
 
         with open(file_path, "w") as f:
             json.dump(data, f)
-
-
-JsonParse(completion.choices[0].message["content"]).save_to_json()
