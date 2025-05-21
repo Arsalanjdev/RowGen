@@ -1,0 +1,6 @@
+![Python](https://img.shields.io/badge/python-3.12%20-blue)
+![Last Commit](https://img.shields.io/github/last-commit/Arsalanjdev/RowGen)
+![Issues](https://img.shields.io/github/issues/Arsalanjdev/RowGen)
+![Repo Size](https://img.shields.io/github/repo-size/Arsalanjdev/RowGen)
+[![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-brightgreen)](https://github.com/Arsalanjdev/RowGen/pulls)
+[![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
