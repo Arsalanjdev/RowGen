@@ -1,6 +1,6 @@
 from huggingface_hub import InferenceClient
 
-from .utils import API_KEY
+from rowgen.utils import API_KEY
 
 
 class HFapi:
