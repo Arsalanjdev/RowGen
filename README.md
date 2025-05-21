@@ -24,7 +24,7 @@
 ## ⚡ Quick Start  
 
 ### Prerequisites  
-- Python 3.8+  
+- Python 3.12+g 
 - [Poetry](https://python-poetry.org/docs/#installation)  
 - HuggingFace API key (sign up [here](https://huggingface.co/api-keys))  
 
