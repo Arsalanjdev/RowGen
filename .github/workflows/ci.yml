@@ -10,6 +10,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      HF_API_KEY: ${{ secrets.HF_API_KEY }}
+      DB_URL: ${{ secrets.DB_URL }}
+
     steps:
       - uses: actions/checkout@v3
       - name: Set Up Python
@@ -21,7 +25,6 @@ jobs:
         run: |
           pip install poetry
           poetry install
-
       - name: Run tests
         run: |
           poetry run pytest

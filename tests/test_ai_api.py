@@ -4,11 +4,9 @@ import pytest
 from dotenv import load_dotenv
 from huggingface_hub.errors import BadRequestError
 
-from rowgen.utils import ENV_PATH
+from rowgen.utils import API_KEY
 from huggingface_hub import InferenceClient, HfApi
 
-load_dotenv(dotenv_path=ENV_PATH)
-API_KEY = os.getenv("HF_API_KEY")
 
 DEEP_SEEK_MODEL = "deepseek-ai/DeepSeek-V3"
 

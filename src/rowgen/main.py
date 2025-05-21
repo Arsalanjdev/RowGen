@@ -4,10 +4,8 @@ import os
 from huggingface_hub import InferenceClient
 import sqlalchemy
 from dotenv import load_dotenv
-from utils import ENV_PATH
+from utils import API_KEY
 
-load_dotenv(dotenv_path=ENV_PATH)
-API_KEY = os.getenv("HF_API_KEY")
 print()
 
 

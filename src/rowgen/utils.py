@@ -1,5 +1,8 @@
 from pathlib import Path
 
+from dotenv import load_dotenv
+import os
+
 
 def find_project_root(start_path: Path = None, marker_files=None) -> Path:
     """
@@ -33,13 +36,20 @@ def find_project_root(start_path: Path = None, marker_files=None) -> Path:
         current = current.parent
 
 
-def get_env_file_path() -> Path:
+def get_api_key() -> str:
     """
-    Finds and returns the path of .env file.
-    :return: Path object.
+    Returns the API key from environment, loading .env if running locally.
     """
-    root = find_project_root()
-    return f"{root}/.env"
+    # Load .env only if not already set (e.g., local dev)
+    if "HF_API_KEY" not in os.environ:
+        env_path = find_project_root() / ".env"
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path)
+
+    api_key = os.getenv("HF_API_KEY")
+    if not api_key:
+        raise RuntimeError("HF_API_KEY is not set in the environment.")
+    return api_key
 
 
-ENV_PATH = get_env_file_path()
+API_KEY = get_api_key()
