@@ -1,5 +1,5 @@
 import json
-from rowgen.json_parser import JsonParse
+from rowgen.parser import parse_sql_from_code_block, parse_json_from_code_block
 from rowgen.hf_api import HFapi
 from pytest import fixture
 
@@ -13,9 +13,9 @@ def test_rows_json(hfapi):
     raw_query = hfapi.send_message_to_api(
         "This is my database: id, name, username, email, access_level. generate 5 fake data rows for it. don't say anything just generate in json. i want your whole message to be just a json"
     )
-    jsp = JsonParse(raw_query)
+    jsp = parse_json_from_code_block(raw_query)
     try:
-        json.loads(jsp.processed_query)
+        json.loads(jspy)
         return True
     except json.JSONDecodeError:
         return False

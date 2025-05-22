@@ -3,6 +3,9 @@ from sqlalchemy import create_engine, text
 from hf_api import HFapi
 import argparse
 
+from rowgen.extract_from_db import DBconnect
+from rowgen.parser import parse_sql_from_code_block
+
 
 def main():
     parser = argparse.ArgumentParser(description="RowGen CLI")
@@ -25,10 +28,20 @@ def main():
     else:
         db_url = "{args.db_type}://{args.user}:{args.password}@{args.host}:{args.port}/{args.database}"
 
-    engine = create_engine(db_url)
-    with engine.connect() as conn:
-        result = conn.execute(text("SELECT 1"))
-        print("Connected to database:", result.scalar())
+    dbc = DBconnect(db_url)
+    hf = HFapi()
+    data = hf.prompt_fake_data(dbc.table_columns, 20)
+    inserts = hf.prompt_insert_statements(data, table_name="users")
+    # print(inserts)
+    sql_parser = parse_sql_from_code_block(inserts)
+    sql_parser = sql_parser.split("\n")
+    print(sql_parser)
+    # execute
+    engine = create_engine("sqlite:///testrowgendb.sqlite")  # replace with your DB URL
+    with engine.connect() as connection:
+        for sql in sql_parser:
+            connection.execute(text(sql))
+        connection.commit()
 
 
 if __name__ == "__main__":
