@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, text
 
-from hf_api import HFapi
+from rowgen.hf_api import HFapi
 import argparse
 
 from rowgen.extract_from_db import DBconnect
@@ -8,7 +8,7 @@ from rowgen.sql_parser import parse_sql_from_code_block
 import os
 
 
-def main():
+def get_parser():
     parser = argparse.ArgumentParser(description="RowGen CLI")
     parser.add_argument(
         "--db-url", help="Full database URL (overrides individual parts)"
@@ -27,6 +27,11 @@ def main():
         help="Executes insert statements into the database directly.",
     )
     parser.add_argument("--apikey", help="Enter your huggingface_hub api key.")
+    return parser
+
+
+def main():
+    parser = get_parser()
     args = parser.parse_args()
 
     if args.apikey:
