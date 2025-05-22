@@ -30,7 +30,7 @@ class HFapi:
         :return: str. the response of ai api.
         """
         prompt = f"""
-        Generate {num_rows} rows of fake sql data for the following table:column schema. Make the data look believable and realistic (not john doe or anything like that). 
+        Generate {num_rows} rows of fake sql data for the following table:column schema. Make the data look believable and realistic (not john doe or anything like that). make sure there's consistency between tables (such as foregin keys and so on).
         Your response should be only in plain sql insert statements with no words before or after. table:column schema: {db_schema}
         """
         return self.send_message_to_api(prompt)

@@ -39,16 +39,12 @@ def test_hf_hub_ping(hf_api_client):
         pytest.fail(f"Failed to ping Hugging Face Hub: {e}")
 
 
-def test_hf_inference_connection(inference_client):
+def test_hf_api_send_message_to_api(hf_api):
     prompt_message = "Hi! This is a test. say banana if you can hear me."
     try:
-        completion = inference_client.chat.completions.create(
-            model="deepseek-ai/DeepSeek-V3",
-            messages=[{"role": "user", "content": prompt_message}],
-        )
-        message: str = completion.choices[0].message["content"]
-        assert len(message) > 0
-        assert "banana" in message.casefold()
+        response_message = hf_api.send_message_to_api(prompt_message)
+        assert len(response_message) > 0
+        assert "banana" in response_message.casefold()
 
     except BadRequestError as e:
         print(e)
@@ -57,12 +53,13 @@ def test_hf_inference_connection(inference_client):
         pytest.fail(f"Failed inference call: {d}")
 
 
-def test_hf_api_send_message_to_api(hf_api):
-    prompt_message = "Hi! This is a test. say banana if you can hear me."
+def test_hf_sql_message(hf_api):
+    prompt_message = "Write five sql statements for the table Books made up of id, title, isbn, genre, publication_date, author. Your message should only consist of sql statements with no sentence before and after."
     try:
         response_message = hf_api.send_message_to_api(prompt_message)
         assert len(response_message) > 0
-        assert "banana" in response_message.casefold()
+        assert response_message.startswith("```sql")
+        assert response_message.endswith("```")
 
     except BadRequestError as e:
         print(e)
