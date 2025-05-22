@@ -18,19 +18,6 @@ def trim_code_block(text: str, language: str = "") -> str:
     return text
 
 
-def parse_json_from_code_block(text: str) -> dict | None:
-    """
-    Trim and parse JSON text from code block
-    """
-    cleaned = trim_code_block(text, "json")
-    try:
-        return json.loads(cleaned)
-    except json.JSONDecodeError as e:
-        print("Failed to parse JSON:", e)
-        print(cleaned)
-        return None
-
-
 def parse_sql_from_code_block(text: str) -> str:
     """
     Return cleaned SQL query string

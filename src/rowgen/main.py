@@ -31,9 +31,9 @@ def main():
     dbc = DBconnect(db_url)
     hf = HFapi()
     data = hf.prompt_fake_data(dbc.table_columns, 20)
-    inserts = hf.prompt_insert_statements(data, table_name="users")
     # print(inserts)
-    sql_parser = parse_sql_from_code_block(inserts)
+    sql_parser = parse_sql_from_code_block(data)
+    print(f"sqlparserrrrrrrrr:{sql_parser}")
     sql_parser = sql_parser.split("\n")
     print(sql_parser)
     # execute

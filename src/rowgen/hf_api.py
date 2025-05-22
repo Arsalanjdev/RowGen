@@ -31,10 +31,10 @@ class HFapi:
         """
         prompt = f"""
         Generate {num_rows} rows of fake sql data for the following table:column schema. Make the data look believable and realistic (not john doe or anything like that). 
-        Your response should be only in plain json with no words before or after. table:column schema: {db_schema}
+        Your response should be only in plain sql insert statements with no words before or after. table:column schema: {db_schema}
         """
         return self.send_message_to_api(prompt)
 
-    def prompt_insert_statements(self, jsondata: str, table_name: str):
-        prompt = f"""Given the following jsondata that is to be inserted into a SQL table (table_name:{table_name}, generate insert statements for it. Your output should only be insert statements without any sentences before or after. data: {jsondata}"""
-        return self.send_message_to_api(prompt)
+    # def prompt_insert_statements(self, jsondata: str, table_name: str):
+    #     prompt = f"""Given the following jsondata that is to be inserted into a SQL table (table_name:{table_name}, generate insert statements for it. Your output should only be insert statements without any sentences before or after. data: {jsondata}"""
+    #     return self.send_message_to_api(prompt)
