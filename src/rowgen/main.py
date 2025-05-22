@@ -26,6 +26,11 @@ def get_parser():
         action="store_true",
         help="Executes insert statements into the database directly.",
     )
+    parser.add_argument(
+        "--rows",
+        default=20,
+        help="Enter the number of rows you want to be filled with generative data.",
+    )
     parser.add_argument("--apikey", help="Enter your huggingface_hub api key.")
     return parser
 
@@ -44,16 +49,17 @@ def main():
     else:
         db_url = "{args.db_type}://{args.user}:{args.password}@{args.host}:{args.port}/{args.database}"
 
+    rows = args.rows
+
     dbc = DBconnect(db_url)
     hf = HFapi(api_key=api_key)
-    ai_sql_response = hf.prompt_fake_data(dbc.table_columns, 20)
+    ai_sql_response = hf.prompt_fake_data(dbc.table_columns, rows)
     sql_statements = parse_sql_from_code_block(ai_sql_response)
+
     # execute
     if args.execute:
         sql_statements = sql_statements.split("\n")
-        engine = create_engine(
-            "sqlite:///testrowgendb.sqlite"
-        )  # replace with your DB URL
+        engine = create_engine("sqlite:///testrowgendb.sqlite")
         with engine.connect() as connection:
             for sql in sql_statements:
                 connection.execute(text(sql))
