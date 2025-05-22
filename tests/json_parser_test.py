@@ -1,4 +1,3 @@
-import pytest
 import json
 from rowgen.json_parser import JsonParse
 from rowgen.hf_api import HFapi
@@ -10,7 +9,7 @@ def hfapi():
     return HFapi()
 
 
-def test_single_row_json(hfapi):
+def test_rows_json(hfapi):
     raw_query = hfapi.send_message_to_api(
         "This is my database: id, name, username, email, access_level. generate 5 fake data rows for it. don't say anything just generate in json. i want your whole message to be just a json"
     )
