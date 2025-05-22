@@ -20,6 +20,11 @@ def main():
     parser.add_argument("--user")
     parser.add_argument("--password")
     parser.add_argument("--database")
+    parser.add_argument(
+        "--execute",
+        action="store_true",
+        help="Executes insert statements into the database directly.",
+    )
 
     args = parser.parse_args()
 
@@ -30,18 +35,23 @@ def main():
 
     dbc = DBconnect(db_url)
     hf = HFapi()
-    data = hf.prompt_fake_data(dbc.table_columns, 20)
-    # print(inserts)
-    sql_parser = parse_sql_from_code_block(data)
-    print(f"sqlparserrrrrrrrr:{sql_parser}")
-    sql_parser = sql_parser.split("\n")
-    print(sql_parser)
+    ai_sql_response = hf.prompt_fake_data(dbc.table_columns, 20)
+    sql_statements = parse_sql_from_code_block(ai_sql_response)
     # execute
-    engine = create_engine("sqlite:///testrowgendb.sqlite")  # replace with your DB URL
-    with engine.connect() as connection:
-        for sql in sql_parser:
-            connection.execute(text(sql))
-        connection.commit()
+    if args.execute:
+        sql_statements = sql_statements.split("\n")
+        engine = create_engine(
+            "sqlite:///testrowgendb.sqlite"
+        )  # replace with your DB URL
+        with engine.connect() as connection:
+            for sql in sql_statements:
+                connection.execute(text(sql))
+            connection.commit()
+        print("Insert statements were executed into the database.")
+    else:
+        with open("init_db.sql", "w") as f:
+            f.write(sql_statements)
+        print("Saved to sql file.")
 
 
 if __name__ == "__main__":
