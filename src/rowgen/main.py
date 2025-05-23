@@ -128,10 +128,10 @@ def get_api_key_from_config() -> str:
                         return line.split(":", 1)[1].strip()
         except PermissionError:
             print("Error: No permission to read the config file.")
-            raise SystemExit(1)
+            raise SystemExit(1) from None
         except Exception as e:
             print(f"Error reading config: {e}")
-            raise SystemExit(1)
+            raise SystemExit(1) from None
 
     # Prompt for new API key
     apikey = input("Enter your HuggingFace API key: ").strip()
@@ -181,7 +181,7 @@ def main() -> None:
 
     except Exception as e:
         print(f"Error: {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
 
 if __name__ == "__main__":

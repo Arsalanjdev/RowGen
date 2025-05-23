@@ -2,7 +2,7 @@
 Extracts schema information from a SQL database with comprehensive error handling.
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.exc import SQLAlchemyError
