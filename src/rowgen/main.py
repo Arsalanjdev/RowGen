@@ -59,14 +59,14 @@ def main():
     # execute
     if args.execute:
         sql_statements = sql_statements.split("\n")
-        engine = create_engine("sqlite:///testrowgendb.sqlite")
+        engine = create_engine(db_url)
         with engine.connect() as connection:
             for sql in sql_statements:
                 connection.execute(text(sql))
             connection.commit()
         print("Insert statements were executed into the database.")
     else:
-        with open("init_db.sql", "w") as f:
+        with open("inserts.sql", "w") as f:
             f.write(sql_statements)
         print("Saved to sql file.")
 

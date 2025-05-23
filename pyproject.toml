@@ -3,7 +3,7 @@ name = "rowgen"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "ArsalanJdev",email = "arsalanjdev@gmail.com"}
+    { name = "ArsalanJdev", email = "arsalanjdev@gmail.com" }
 ]
 readme = "README.md"
 requires-python = ">=3.12"
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [tool.poetry]
-packages = [{include = "rowgen", from = "src"}]
+packages = [{ include = "rowgen", from = "src" }]
 
 [tool.ruff]
 line-length = 88
@@ -30,3 +30,6 @@ ruff = "^0.11.11"
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+rowgen = "rowgen.main:main"

@@ -3,6 +3,7 @@ import sqlite3
 
 import pytest
 from sqlalchemy import INTEGER, TEXT
+from sqlalchemy.exc import OperationalError
 
 from rowgen.extract_from_db import DBconnect
 
@@ -34,6 +35,22 @@ def temp_db():
 def db_connect(temp_db):
     dbc = DBconnect(temp_db)
     yield dbc
+
+
+@pytest.fixture
+def empty_temp_db():
+    db_path = "empty_test.db"
+    conn = sqlite3.connect(db_path)
+    conn.close()
+    url = f"sqlite:///{db_path}"
+    yield url
+    if os.path.exists(db_path):
+        os.remove(db_path)
+
+
+def test_empty_db_table_columns(empty_temp_db):
+    dbc = DBconnect(empty_temp_db)
+    assert dbc.table_columns == {}
 
 
 def test_get_columns(db_connect):
@@ -92,3 +109,14 @@ def test_get_columns(db_connect):
     }
 
     assert cleaned_result == cleaned_expected
+
+
+def test_invalid_db_url():
+    bad_url = "sqlite:///non_existent_folder/non_existent_file.db"
+    with pytest.raises(OperationalError):
+        DBconnect(bad_url)
+
+
+def test_tables_list(db_connect):
+    tables = db_connect.tables
+    assert "users" in tables
