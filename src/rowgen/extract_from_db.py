@@ -1,97 +1,101 @@
 """
-Extracts schema information from a SQL database with comprehensive error handling.
+Simplified Database Schema Extractor with Constraints
 """
 
-from typing import Any, Dict, List
+from typing import Dict
 
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.exc import SQLAlchemyError
 
 
-class DBError(Exception):
-    """Base exception for database-related errors in this module."""
+def extract_db_schema(db_url: str) -> Dict:
+    """
+    Extract complete database schema including constraints
 
-    pass
+    Args:
+        db_url: Database connection string
+
+    Returns:
+        Dictionary containing schema with constraints
+
+    Raises:
+        Exception: If connection or inspection fails
+    """
+    try:
+        engine = create_engine(db_url)
+        inspector = inspect(engine)
+
+        schema = {"database_type": engine.dialect.name, "tables": {}}
+
+        for table_name in inspector.get_table_names():
+            # Get columns with constraints
+            columns = []
+            for col in inspector.get_columns(table_name):
+                columns.append(
+                    {
+                        "name": col["name"],
+                        "type": str(col["type"]),
+                        "nullable": col["nullable"],
+                        "primary_key": col.get("primary_key", False),
+                        "unique": col.get("unique", False),
+                        "default": (
+                            str(col.get("default")) if col.get("default") else None
+                        ),
+                        "autoincrement": col.get("autoincrement", False),
+                    }
+                )
+
+            # Get primary key constraints
+            pk_constraint = inspector.get_pk_constraint(table_name)
+
+            # Get foreign key constraints
+            foreign_keys = []
+            for fk in inspector.get_foreign_keys(table_name):
+                foreign_keys.append(
+                    {
+                        "name": fk.get("name"),
+                        "source_columns": fk["constrained_columns"],
+                        "target_table": fk["referred_table"],
+                        "target_columns": fk["referred_columns"],
+                        "ondelete": fk.get("ondelete"),
+                        "onupdate": fk.get("onupdate"),
+                    }
+                )
+
+            # Get unique constraints
+            unique_constraints = []
+            for uc in inspector.get_unique_constraints(table_name):
+                unique_constraints.append(
+                    {"name": uc["name"], "columns": uc["column_names"]}
+                )
+
+            # Get check constraints (if supported)
+            check_constraints = []
+            if hasattr(inspector, "get_check_constraints"):
+                for cc in inspector.get_check_constraints(table_name):
+                    check_constraints.append(
+                        {"name": cc["name"], "sqltext": cc["sqltext"]}
+                    )
+
+            # Add table to schema
+            schema["tables"][table_name] = {
+                "columns": columns,
+                "primary_key": pk_constraint.get("constrained_columns", []),
+                "foreign_keys": foreign_keys,
+                "unique_constraints": unique_constraints,
+                "check_constraints": check_constraints,
+            }
+
+        return schema
+
+    except SQLAlchemyError as e:
+        raise Exception(f"Failed to extract schema: {str(e)}")
 
 
-class NoTablesFoundError(DBError):
-    """Raised when no tables are found in the database."""
-
-    pass
-
-
-class DBconnect:
-    def __init__(self, db_url: str):
-        """
-        Initialize database connection.
-
-        Args:
-            db_url: Database connection URL
-
-        Raises:
-            DBError: If connection to database fails
-        """
-        try:
-            self.engine = create_engine(db_url)
-            self.inspector = inspect(self.engine)
-        except SQLAlchemyError as e:
-            raise DBError(f"Failed to connect to database: {str(e)}") from e
-
-    @property
-    def tables(self) -> List[str]:
-        """
-        Get list of table names in the database.
-
-        Returns:
-            List of table names
-
-        Raises:
-            NoTablesFoundError: If no tables exist in the database
-            DBError: If table listing fails
-        """
-        try:
-            tables = self.inspector.get_table_names()
-            if not tables:
-                raise NoTablesFoundError("Database contains no tables")
-            return tables
-        except SQLAlchemyError as e:
-            raise DBError(f"Failed to get table list: {str(e)}") from e
-
-    @property
-    def table_columns(self) -> Dict[str, List[Dict[str, Any]]]:
-        """
-        Get column information for all tables in the database.
-
-        Returns:
-            Dictionary mapping table names to their column information
-
-        Raises:
-            NoTablesFoundError: If no tables exist in the database
-            DBError: If column information retrieval fails
-        """
-        try:
-            tables = self.tables  # This may raise NoTablesFoundError
-            return {table: self._get_columns_with_validation(table) for table in tables}
-        except SQLAlchemyError as e:
-            raise DBError(f"Failed to get column information: {str(e)}") from e
-
-    def _get_columns_with_validation(self, table: str) -> List[Dict[str, Any]]:
-        """
-        Get column information for a specific table with validation.
-
-        Args:
-            table: Table name to inspect
-
-        Returns:
-            List of column information dictionaries
-
-        Raises:
-            DBError: If no columns found or inspection fails
-        """
-        try:
-            columns = self.inspector.get_columns(table)
-            if not columns:
-                raise DBError(f"Table '{table}' contains no columns")
-            return columns
-        except SQLAlchemyError as e:
-            raise DBError(f"Failed to inspect table '{table}': {str(e)}") from e
+# Example usage:
+if __name__ == "__main__":
+    try:
+        schema = extract_db_schema("sqlite:///example.db")
+        print(schema)  # Ready to send to AI API
+    except Exception as e:
+        print(f"Error: {e}")

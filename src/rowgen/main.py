@@ -4,7 +4,7 @@ from pathlib import Path
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
-from rowgen.extract_from_db import DBconnect
+from rowgen.extract_from_db import extract_db_schema
 from rowgen.hf_api import HFapi
 from rowgen.sql_parser import parse_sql_from_code_block
 
@@ -168,9 +168,10 @@ def main() -> None:
         db_url = get_db_url(args)
 
         # Generate SQL statements
-        dbc = DBconnect(db_url)
+        schema = extract_db_schema(db_url)
+        print(schema)
         hf = HFapi(api_key=api_key)
-        ai_sql_response = hf.prompt_fake_data(dbc.table_columns, args.rows)
+        ai_sql_response = hf.prompt_fake_data(schema, args.rows)
         sql_statements = parse_sql_from_code_block(ai_sql_response)
 
         # Execute or save
