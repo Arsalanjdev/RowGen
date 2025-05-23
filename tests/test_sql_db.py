@@ -3,15 +3,15 @@ import tempfile
 
 import pytest
 from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    ForeignKey,
     CheckConstraint,
+    Column,
+    ForeignKey,
+    Integer,
+    MetaData,
+    String,
+    Table,
     UniqueConstraint,
     create_engine,
-    MetaData,
-    Table,
 )
 
 from rowgen.extract_from_db import (
@@ -31,7 +31,7 @@ def setup_database():
     engine = create_engine(db_url)
     metadata = MetaData()
 
-    parent = Table(
+    Table(
         "parent",
         metadata,
         Column("id", Integer, primary_key=True, autoincrement=True),
@@ -39,7 +39,7 @@ def setup_database():
         CheckConstraint("length(name) > 1", name="name_length_check"),
     )
 
-    child = Table(
+    Table(
         "child",
         metadata,
         Column("id", Integer, primary_key=True),
