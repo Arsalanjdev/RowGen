@@ -89,4 +89,4 @@ def extract_db_schema(db_url: str) -> Dict:
         return schema
 
     except SQLAlchemyError as e:
-        raise Exception(f"Failed to extract schema: {str(e)}")
+        raise Exception(f"Failed to extract schema: {str(e)}") from None
