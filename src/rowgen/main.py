@@ -169,10 +169,13 @@ def main() -> None:
 
         # Generate SQL statements
         schema = extract_db_schema(db_url)
-        print(schema)
+        print("Schema extracted.")
         hf = HFapi(api_key=api_key)
+        print("Connecting to the ai api...")
         ai_sql_response = hf.prompt_fake_data(schema, args.rows)
+        print("Ai is generating fake data for the database...")
         sql_statements = parse_sql_from_code_block(ai_sql_response)
+        print("Generative data returned. processing...")
 
         # Execute or save
         if args.execute:
