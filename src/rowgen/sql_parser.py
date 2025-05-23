@@ -1,6 +1,3 @@
-import json
-
-
 def trim_code_block(text: str, language: str = "") -> str:
     """
     Removes markdown code block fences like ```json ... ```
@@ -23,11 +20,6 @@ def parse_sql_from_code_block(text: str) -> str:
     Return cleaned SQL query string
     """
     return trim_code_block(text, "sql")
-
-
-def save_json(data: dict, file_path: str = "output.json"):
-    with open(file_path, "w") as f:
-        json.dump(data, f)
 
 
 # print(
