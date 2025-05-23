@@ -1,74 +1,111 @@
 import argparse
-import os
+from pathlib import Path
 
 from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
 
 from rowgen.extract_from_db import DBconnect
 from rowgen.hf_api import HFapi
 from rowgen.sql_parser import parse_sql_from_code_block
 
 
-def get_parser():
-    parser = argparse.ArgumentParser(description="RowGen CLI")
-    parser.add_argument(
-        "--db-url", help="Full database URL (overrides individual parts)"
+def get_parser() -> argparse.ArgumentParser:
+    """Create and configure the argument parser."""
+    parser = argparse.ArgumentParser(
+        description="RowGen CLI - Generate and insert synthetic data into databases"
     )
-    parser.add_argument(
-        "--db-type", choices=["postgresql", "mysql", "sqlite"], default="postgresql"
+
+    # Database connection options
+    db_group = parser.add_argument_group("Database Connection")
+    db_group.add_argument(
+        "--db-url",
+        help="Full database URL (overrides individual connection parameters)",
     )
-    parser.add_argument("--host", default="localhost")
-    parser.add_argument("--port", default="5432")
-    parser.add_argument("--user")
-    parser.add_argument("--password")
-    parser.add_argument("--database")
-    parser.add_argument(
+    db_group.add_argument(
+        "--db-type",
+        choices=["postgresql", "mysql", "sqlite"],
+        default="postgresql",
+        help="Database type (default: postgresql)",
+    )
+    db_group.add_argument("--host", default="localhost", help="Database host")
+    db_group.add_argument("--port", default="5432", help="Database port")
+    db_group.add_argument("--user", help="Database username")
+    db_group.add_argument("--password", help="Database password")
+    db_group.add_argument("--database", help="Database name")
+
+    # Operation options
+    operation_group = parser.add_argument_group("Operation")
+    operation_group.add_argument(
         "--execute",
         action="store_true",
-        help="Executes insert statements into the database directly.",
+        help="Execute insert statements directly in the database",
     )
-    parser.add_argument(
+    operation_group.add_argument(
         "--rows",
+        type=int,
         default=20,
-        help="Enter the number of rows you want to be filled with generative data.",
+        help="Number of rows to generate (default: 20)",
     )
-    parser.add_argument("--apikey", help="Enter your huggingface_hub api key.")
+    operation_group.add_argument(
+        "--output",
+        default="inserts.sql",
+        help="Output file path when not executing directly (default: inserts.sql)",
+    )
+
+    # API configuration
+    api_group = parser.add_argument_group("API Configuration")
+    api_group.add_argument(
+        "--apikey",
+        help="HuggingFace Hub API key (will be saved in config if not present)",
+    )
+
     return parser
 
 
-def main():
-    parser = get_parser()
-    args = parser.parse_args()
+def validate_args(args: argparse.Namespace) -> bool:
+    """Validate that required arguments are provided."""
+    if not args.db_url and not all([args.host, args.user, args.database]):
+        print("Error: Either provide --db-url or all of --host, --user, --database")
+        return False
+    return True
 
-    if args.apikey:
-        api_key = args.apikey
-    else:
-        api_key = get_api_key_from_config()
 
+def get_db_url(args: argparse.Namespace) -> str:
+    """Construct the database URL from arguments."""
     if args.db_url:
-        db_url = args.db_url
-    else:
-        db_url = "{args.db_type}://{args.user}:{args.password}@{args.host}:{args.port}/{args.database}"
+        return args.db_url
 
-    rows = args.rows
+    credentials = f"{args.user}:{args.password}" if args.password else args.user
+    return f"{args.db_type}://{credentials}@{args.host}:{args.port}/{args.database}"
 
-    dbc = DBconnect(db_url)
-    hf = HFapi(api_key=api_key)
-    ai_sql_response = hf.prompt_fake_data(dbc.table_columns, rows)
-    sql_statements = parse_sql_from_code_block(ai_sql_response)
 
-    # execute
-    if args.execute:
-        sql_statements = sql_statements.split("\n")
+def execute_sql_statements(db_url: str, sql_statements: str) -> None:
+    """Execute SQL statements against the database."""
+    try:
         engine = create_engine(db_url)
         with engine.connect() as connection:
-            for sql in sql_statements:
-                connection.execute(text(sql))
+            # Split and filter empty statements
+            statements = [stmt for stmt in sql_statements.split(";") if stmt.strip()]
+
+            for sql in statements:
+                if sql.strip():  # Skip empty statements
+                    connection.execute(text(sql.strip()))
             connection.commit()
-        print("Insert statements were executed into the database.")
-    else:
-        with open("inserts.sql", "w") as f:
+        print("Successfully executed insert statements.")
+    except SQLAlchemyError as e:
+        print(f"Error executing SQL statements: {e}")
+        raise
+
+
+def save_sql_statements(output_path: str, sql_statements: str) -> None:
+    """Save SQL statements to a file."""
+    try:
+        with open(output_path, "w") as f:
             f.write(sql_statements)
-        print("Saved to sql file.")
+        print(f"SQL statements saved to {output_path}")
+    except IOError as e:
+        print(f"Error saving to file: {e}")
+        raise
 
 
 def get_api_key_from_config() -> str:
@@ -76,40 +113,75 @@ def get_api_key_from_config() -> str:
     Retrieves API key from the config file (~/.config/rowgen/conf).
     If no key is stored, prompts the user for input and saves it.
 
-    :return: str. The API key.
+    :return: The API key as a string
+    :raises: SystemExit if there are critical errors
     """
-    config_path = os.path.expanduser("~/.config/rowgen/conf")
-    apikey = None
+    config_dir = Path.home() / ".config" / "rowgen"
+    config_path = config_dir / "conf"
 
-    try:
-        with open(config_path, "r") as file:
-            for line in file:
-                if line.startswith("apikey:"):
-                    apikey = line.split(":", 1)[1].strip()
-                    break  # no need to keep reading
-
-    except FileNotFoundError:
-        pass  # we'll prompt the user below
-    except PermissionError:
-        print("You do not have permission to read the config file.")
-        return ""
-    except Exception as e:
-        print(f"An unexpected error occurred while reading: {e}")
-        return ""
-
-    if not apikey:
-        # Prompt the user
-        apikey = input("Enter your API key: ").strip()
-
+    # Try to read existing API key
+    if config_path.exists():
         try:
-            os.makedirs(os.path.dirname(config_path), exist_ok=True)
-            with open(config_path, "w") as file:
-                file.write(f"apikey: {apikey}\n")
-                print(f"API key was store in the {config_path}")
+            with open(config_path, "r") as file:
+                for line in file:
+                    if line.startswith("apikey:"):
+                        return line.split(":", 1)[1].strip()
+        except PermissionError:
+            print("Error: No permission to read the config file.")
+            raise SystemExit(1)
         except Exception as e:
-            print(f"Failed to save API key: {e}")
+            print(f"Error reading config: {e}")
+            raise SystemExit(1)
+
+    # Prompt for new API key
+    apikey = input("Enter your HuggingFace API key: ").strip()
+    if not apikey:
+        print("Error: API key cannot be empty")
+        raise SystemExit(1)
+
+    # Save the new API key
+    try:
+        config_dir.mkdir(parents=True, exist_ok=True)
+        with open(config_path, "w") as file:
+            file.write(f"apikey: {apikey}\n")
+        print(f"API key saved to {config_path}")
+    except Exception as e:
+        print(f"Warning: Could not save API key: {e}")
 
     return apikey
+
+
+def main() -> None:
+    """Main entry point for the RowGen CLI."""
+    parser = get_parser()
+    args = parser.parse_args()
+
+    if not validate_args(args):
+        parser.print_help()
+        raise SystemExit(1)
+
+    try:
+        # Get API key
+        api_key = args.apikey if args.apikey else get_api_key_from_config()
+
+        # Get database connection
+        db_url = get_db_url(args)
+
+        # Generate SQL statements
+        dbc = DBconnect(db_url)
+        hf = HFapi(api_key=api_key)
+        ai_sql_response = hf.prompt_fake_data(dbc.table_columns, args.rows)
+        sql_statements = parse_sql_from_code_block(ai_sql_response)
+
+        # Execute or save
+        if args.execute:
+            execute_sql_statements(db_url, sql_statements)
+        else:
+            save_sql_statements(args.output, sql_statements)
+
+    except Exception as e:
+        print(f"Error: {e}")
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
