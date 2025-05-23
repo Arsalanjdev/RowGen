@@ -1,5 +1,5 @@
 """
-Simplified Database Schema Extractor with Constraints
+Database Schema Extractor.
 """
 
 from typing import Dict
