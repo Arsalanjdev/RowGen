@@ -90,12 +90,3 @@ def extract_db_schema(db_url: str) -> Dict:
 
     except SQLAlchemyError as e:
         raise Exception(f"Failed to extract schema: {str(e)}")
-
-
-# Example usage:
-if __name__ == "__main__":
-    try:
-        schema = extract_db_schema("sqlite:///example.db")
-        print(schema)  # Ready to send to AI API
-    except Exception as e:
-        print(f"Error: {e}")
