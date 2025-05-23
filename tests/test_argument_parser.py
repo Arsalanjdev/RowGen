@@ -1,5 +1,7 @@
 import sys
+
 import pytest
+
 from rowgen.main import get_parser
 
 

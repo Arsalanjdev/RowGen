@@ -1,11 +1,11 @@
+import argparse
+import os
+
 from sqlalchemy import create_engine, text
 
-from rowgen.hf_api import HFapi
-import argparse
-
 from rowgen.extract_from_db import DBconnect
+from rowgen.hf_api import HFapi
 from rowgen.sql_parser import parse_sql_from_code_block
-import os
 
 
 def get_parser():

@@ -1,9 +1,9 @@
 import os
+import sqlite3
 
 import pytest
-from sqlalchemy import create_engine, INTEGER, TEXT
-from sqlalchemy.orm import sessionmaker
-import sqlite3
+from sqlalchemy import INTEGER, TEXT
+
 from rowgen.extract_from_db import DBconnect
 
 
@@ -37,7 +37,7 @@ def db_connect(temp_db):
 
 
 def test_get_columns(db_connect):
-    cols = db_connect.table_columns
+    # cols = db_connect.table_columns
     expected = {
         "users": [
             {

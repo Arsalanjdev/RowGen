@@ -1,7 +1,7 @@
+import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-import os
 
 
 def find_project_root(start_path: Path = None, marker_files=None) -> Path:

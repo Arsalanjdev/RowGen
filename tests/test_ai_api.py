@@ -1,13 +1,9 @@
-import os
-
 import pytest
-from dotenv import load_dotenv
+from huggingface_hub import HfApi, InferenceClient
 from huggingface_hub.errors import BadRequestError
 
-from rowgen.utils import API_KEY
-from huggingface_hub import InferenceClient, HfApi
 from rowgen.hf_api import HFapi
-
+from rowgen.utils import API_KEY
 
 DEEP_SEEK_MODEL = "deepseek-ai/DeepSeek-V3"
 
