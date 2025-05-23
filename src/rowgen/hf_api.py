@@ -76,7 +76,7 @@ class HFapi:
         prompt = f"""
         Generate {num_rows} rows of fake SQL data for the following table:column schema. 
         Make the data look believable and realistic (no placeholder names like 'John Doe').
-        Ensure consistency between tables (e.g., valid foreign key references).
+        Ensure consistency between tables (e.g., valid foreign key references). Respect the constraints and checks too.
         Respond with only SQL INSERT statements, without any additional explanation or text.
 
         Schema: {db_schema}

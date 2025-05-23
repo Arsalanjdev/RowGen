@@ -43,8 +43,8 @@ def get_parser() -> argparse.ArgumentParser:
     operation_group.add_argument(
         "--rows",
         type=int,
-        default=20,
-        help="Number of rows to generate (default: 20)",
+        default=25,
+        help="Number of rows to generate (default: 25)",
     )
     operation_group.add_argument(
         "--output",
@@ -171,7 +171,7 @@ def main() -> None:
         schema = extract_db_schema(db_url)
         print("Schema extracted.")
         hf = HFapi(api_key=api_key)
-        print("Connecting to the ai api...")
+        print("Connected to the api. Sending the database schema...")
         ai_sql_response = hf.prompt_fake_data(schema, args.rows)
         print("Ai is generating fake data for the database...")
         sql_statements = parse_sql_from_code_block(ai_sql_response)
