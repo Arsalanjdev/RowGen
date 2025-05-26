@@ -1,6 +1,6 @@
 [project]
 name = "rowgen"
-version = "0.2.0"
+version = "0.2.1"
 description = "Generate and insert realistic context-aware ai generative data into databases"
 authors = [
     { name = "ArsalanJdev", email = "arsalanjdev@gmail.com" }

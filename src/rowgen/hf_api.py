@@ -22,15 +22,13 @@ Usage example:
 
 from huggingface_hub import InferenceClient
 
-from rowgen.utils import API_KEY
-
 
 class HFapi:
     """
     A wrapper for interacting with the Hugging Face Inference API to generate SQL data or chat completions.
     """
 
-    def __init__(self, provider: str = "novita", api_key: str = API_KEY):
+    def __init__(self, api_key: str, provider: str = "novita"):
         """
         Initializes the Hugging Face API client.
 

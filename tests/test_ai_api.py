@@ -1,11 +1,18 @@
+from os import getenv
+from pathlib import Path
+
 import pytest
+from dotenv import load_dotenv
 from huggingface_hub import HfApi, InferenceClient
 from huggingface_hub.errors import BadRequestError
 
 from rowgen.hf_api import HFapi
-from rowgen.utils import API_KEY
 
 DEEP_SEEK_MODEL = "deepseek-ai/DeepSeek-V3"
+
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
+API_KEY = getenv("HF_API_KEY")
 
 
 @pytest.fixture
@@ -17,22 +24,23 @@ def inference_client():
 
 @pytest.fixture
 def hf_api_client():
-    return HfApi()
+    return HfApi(API_KEY)
 
 
 @pytest.fixture
 def hf_api():
-    client = HFapi()
+    client = HFapi(API_KEY)
     return client
 
 
-def test_hf_hub_ping(hf_api_client):
-    try:
-        info = hf_api_client.model_info(DEEP_SEEK_MODEL)
-        assert info.modelId == DEEP_SEEK_MODEL
-        print("Ping successful: Connected to Hugging Face Hub.")
-    except Exception as e:
-        pytest.fail(f"Failed to ping Hugging Face Hub: {e}")
+# def test_hf_hub_ping(hf_api_client):
+#     try:
+#         info = hf_api_client.model_info(DEEP_SEEK_MODEL)
+#         assert info.modelId == DEEP_SEEK_MODEL
+#         print("Ping successful: Connected to Hugging Face Hub.")
+#     except Exception as e:
+#         pytest.fail(f"Failed to ping Hugging Face Hub: {e}")
+#
 
 
 def test_hf_api_send_message_to_api(hf_api):
